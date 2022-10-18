@@ -1,7 +1,7 @@
 //#include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -10,17 +10,14 @@ int main(int argc, char *argv[]) {
     using std::literals::operator""s;
     {
         auto file = std::ofstream{"test.gz"};
-        auto out =
-            boost::iostreams::filtering_streambuf<boost::iostreams::output>{};
+        auto out = boost::iostreams::filtering_ostream{};
 
-        out.push(boost::iostreams::gzip_compressor{});
         out.push(file);
+        out.push(boost::iostreams::gzip_compressor{});
 
-        auto str = "hello there\n"s;
+        auto str = "hello hello there\n"s;
 
-        auto ss = std::stringstream{};
-        ss << str;
-        boost::iostreams::copy(ss, out);
+        out << str;
     }
 
     {
@@ -30,8 +27,7 @@ int main(int argc, char *argv[]) {
             std::cout << "could not open file\n";
             std::terminate();
         }
-        auto in =
-            boost::iostreams::filtering_streambuf<boost::iostreams::input>{};
+        auto in = boost::iostreams::filtering_istream{};
         in.push(boost::iostreams::gzip_decompressor{});
         in.push(file);
 
